@@ -35,9 +35,8 @@ func MysqlCheck() bool {
 		if err != nil {
 			log.Err(err).Msg("mysql health check failed")
 		}
-		return err == nil
 	}
-	return false
+	return err == nil
 }
 
 // close mysql connection
@@ -46,7 +45,7 @@ func CloseMysql() {
 		sqlDB, _ := DataBase.DB()
 		err := sqlDB.Close()
 		if err != nil {
-			panic(err)
+			log.Err(err).Msg("mysql close failed")
 		}
 	}
 }
