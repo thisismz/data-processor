@@ -1,13 +1,15 @@
 package routers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/thisismz/data-processor/internal/api"
+)
 
 type ApiRouter struct {
 }
 
-func (api *ApiRouter) InstallRouter(app *fiber.App) {
-	//TODO: implement business logic function call
-	app.Post("/data")
+func (a *ApiRouter) InstallRouter(app *fiber.App) {
+	app.Post("/data", api.DataHandler)
 }
 func NewApiRouter() *ApiRouter {
 	return &ApiRouter{}

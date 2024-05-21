@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
+	"github.com/thisismz/data-processor/internal/routers"
 	"github.com/thisismz/data-processor/pkg/env"
 )
 
@@ -33,6 +34,7 @@ func Run() {
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
 	}))
-
+	// install routers
+	routers.InstallRouter(app)
 	gracefullyShutdown(app)
 }
