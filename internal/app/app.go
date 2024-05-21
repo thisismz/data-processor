@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/thisismz/data-processor/internal/routers"
+	"github.com/thisismz/data-processor/pkg/databases"
 	"github.com/thisismz/data-processor/pkg/env"
 )
 
@@ -17,6 +18,8 @@ const idleTimeout = 30 * time.Second
 
 func Run() {
 	env.SetupEnvFile()
+	// start databases
+	databases.StartDatabase()
 	// zero log config
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack

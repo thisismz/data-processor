@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/thisismz/data-processor/pkg/databases"
 	"github.com/thisismz/data-processor/pkg/env"
 )
 
@@ -25,7 +26,7 @@ func gracefullyShutdown(app *fiber.App) {
 
 	_ = <-c // This blocks the main thread until an interrupt is received
 	log.Info().Msg("Gracefully shutting down...")
-
+	databases.CloseDatabase()
 	_ = app.Shutdown()
 
 }
