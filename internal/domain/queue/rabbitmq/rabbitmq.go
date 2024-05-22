@@ -1,6 +1,10 @@
 package rabbitmq
 
-import "github.com/thisismz/data-processor/pkg/rabbitmq"
+import (
+	"github.com/goccy/go-json"
+	"github.com/rabbitmq/amqp091-go"
+	"github.com/thisismz/data-processor/pkg/rabbitmq"
+)
 
 type RabbitMQRepository struct {
 	rmq *rabbitmq.RabbitMQ
@@ -14,10 +18,12 @@ func New() *RabbitMQRepository {
 }
 
 func (r *RabbitMQRepository) Enqueue(data any) error {
-	// TODO : need to fix
-	return r.rmq.PublishMessage(data)
+	res, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return r.rmq.PublishMessage(res)
 }
-func (r *RabbitMQRepository) Dequeue() (any, error) {
-	// TODO : need to fix
+func (r *RabbitMQRepository) Dequeue() (<-chan amqp091.Delivery, error) {
 	return r.rmq.ConsumeMessages()
 }

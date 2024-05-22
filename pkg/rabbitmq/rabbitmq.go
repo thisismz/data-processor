@@ -101,7 +101,7 @@ func (r *RabbitMQ) PublishMessage(message []byte) error {
 		})
 	return err
 }
-func (r *RabbitMQ) ConsumeMessages(channel *amqp091.Channel, queueName string) (<-chan amqp091.Delivery, error) {
+func (r *RabbitMQ) ConsumeMessages() (<-chan amqp091.Delivery, error) {
 	msgs, err := r.channel.Consume(
 		r.queueName, // queue
 		"",          // consumer
