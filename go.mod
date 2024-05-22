@@ -3,9 +3,11 @@ module github.com/thisismz/data-processor
 go 1.22.2
 
 require (
+	github.com/goccy/go-json v0.10.3
 	github.com/gofiber/contrib/fiberzerolog v1.0.1
 	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/joho/godotenv v1.5.1
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/rs/zerolog v1.32.0
 	gorm.io/driver/mysql v1.5.6
