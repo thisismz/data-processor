@@ -9,8 +9,8 @@ import (
 )
 
 type User struct {
-	// ID is the identifier of the Entity, the ID is shared for all sub domains
-	ID           uuid.UUID
+	ID           uint `gorm:"primarykey"`
+	UID          uuid.UUID
 	CreateAt     time.Time
 	UserQuota    string
 	DataQuota    string

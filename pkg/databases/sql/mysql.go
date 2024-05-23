@@ -2,6 +2,7 @@ package sql
 
 import (
 	"github.com/rs/zerolog/log"
+	"github.com/thisismz/data-processor/internal/entity"
 	"github.com/thisismz/data-processor/pkg/env"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -20,7 +21,9 @@ func StartMysql() {
 	DataBase.InstanceSet("gorm:table_options", "ENGINE="+env.GetEnv("DB_ENGINE", "InnoDB"))
 	sqlDB, _ := DataBase.DB()
 	sqlDB.SetMaxIdleConns(10)
-	err := DataBase.AutoMigrate()
+	err := DataBase.AutoMigrate(
+		&entity.User{},
+	)
 	if err != nil {
 		panic(err)
 	}

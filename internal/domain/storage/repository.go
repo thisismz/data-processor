@@ -1,4 +1,4 @@
-package processor
+package storage
 
 import (
 	"context"
@@ -17,9 +17,8 @@ var (
 	ErrUpdateData = errors.New("failed to update the Data in the repository")
 )
 
-type ProcessorRepository interface {
+type StorageRepository interface {
 	Add(ctx context.Context, user entity.User) error
-	AddUserDataKey(ctx context.Context, user entity.User) error
 	GetUser(ctx context.Context, userQuota string) (entity.User, error)
 	GetData(ctx context.Context, dataQuota string) (entity.User, error)
 	Update(ctx context.Context, user entity.User) error
