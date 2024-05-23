@@ -2,6 +2,7 @@ package sql
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/thisismz/data-processor/internal/entity"
@@ -27,6 +28,13 @@ func (r *SqlRepository) GetUser(ctx context.Context, userQuota string) (entity.U
 	return user, nil
 }
 
+func (r *SqlRepository) GetSync(ctx context.Context, date time.Time) ([]entity.User, error) {
+	var users []entity.User
+	if err := r.db.Where("date <= ?", date).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
 func (r *SqlRepository) GetData(ctx context.Context, dataQuota string) (entity.User, error) {
 	var user entity.User
 	if err := r.db.Where("data_quota = ?", dataQuota).First(&user).Error; err != nil {

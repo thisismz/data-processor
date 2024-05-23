@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
@@ -23,8 +22,12 @@ func NewStorageRepository(dataBaseConnection *gorm.DB, redisClient *redis.Client
 		sql:    sql.NewSqlRepository(dataBaseConnection),
 	}
 }
-func (st *storageRepository) Add(ctx context.Context, user entity.User, expiration time.Duration) error {
-	if err := st.memory.Add(ctx, user, expiration); err != nil {
+func (st *storageRepository) Add(ctx context.Context, user entity.User) error {
+	if err := st.memory.Add(ctx, user); err != nil {
+		return err
+	}
+	// push to memory
+	if err := st.memory.Push(ctx, user); err != nil {
 		return err
 	}
 	go func() {

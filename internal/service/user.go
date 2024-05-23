@@ -43,17 +43,18 @@ func createNewUser(userQuota string, dataQuota string) error {
 		log.Err(err).Msg("Error: in converting string to int")
 	}
 
-	expiration := time.Duration(trafficExpiration_i) * time.Minute
+	trafficExpiration := time.Now().Add(time.Duration(trafficExpiration_i) * time.Minute)
 	rateExpiration := time.Now().Add(time.Duration(rateExpiration_i) * time.Minute)
 
 	user.DataQuota = dataQuota
 	user.UserQuota = userQuota
 	user.UID = uuid.New()
-	user.RateLImit = RateLimit
-	user.RateLImitExpiration = rateExpiration.Unix()
-	user.TrafficLImit = trafficLimit
+	user.RateLimit = RateLimit
+	user.RateLimitExpiration = rateExpiration
+	user.TrafficLimit = trafficLimit
+	user.TrafficLimitExpiration = trafficExpiration
 
-	err = storageSrv.store.Add(context.Background(), user, expiration)
+	err = storageSrv.store.Add(context.Background(), user)
 	if err != nil {
 		return err
 	}
