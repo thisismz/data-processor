@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/thisismz/data-processor/internal/entity"
@@ -17,8 +18,8 @@ func NewRedisRepository(redis *redis.Client) *RedisRepository {
 	}
 }
 
-func (r *RedisRepository) Add(ctx context.Context, user entity.User) error {
-	if err := r.redis.Set(ctx, user.UserQuota, user, 0).Err(); err != nil {
+func (r *RedisRepository) Add(ctx context.Context, user entity.User, expiration time.Duration) error {
+	if err := r.redis.Set(ctx, user.UserQuota, user, expiration).Err(); err != nil {
 		return err
 	}
 	return nil

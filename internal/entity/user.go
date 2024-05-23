@@ -9,14 +9,15 @@ import (
 )
 
 type User struct {
-	ID           uint `gorm:"primarykey"`
-	UID          uuid.UUID
-	CreateAt     time.Time
-	UserQuota    string
-	DataQuota    string
-	S3Path       string
-	RateLImit    int
-	TrafficLImit int
+	ID                  uint `gorm:"primarykey"`
+	UID                 uuid.UUID
+	CreateAt            time.Time
+	UserQuota           string
+	DataQuota           string
+	S3Path              string
+	RateLImit           int
+	RateLImitExpiration int64
+	TrafficLImit        int
 }
 
 func (u User) MarshalBinary() ([]byte, error) {

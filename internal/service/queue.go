@@ -1,23 +1,12 @@
 package service
 
 import (
-	"time"
-
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/thisismz/data-processor/internal/entity"
 )
 
-func SendToQueue() error {
-	return queueSrv.queue.Enqueue(entity.User{
-		UID:          uuid.New(),
-		CreateAt:     time.Now(),
-		UserQuota:    "1",
-		DataQuota:    "1",
-		S3Path:       "s3://bucket-name",
-		RateLImit:    0,
-		TrafficLImit: 0,
-	})
+func SendToQueue(data entity.Data) error {
+	return queueSrv.queue.Enqueue(data)
 }
 
 func ReceiveFromQueue(done chan bool) error {

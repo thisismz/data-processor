@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/thisismz/data-processor/internal/entity"
 )
@@ -18,7 +19,7 @@ var (
 )
 
 type StorageRepository interface {
-	Add(ctx context.Context, user entity.User) error
+	Add(ctx context.Context, user entity.User, expiration time.Duration) error
 	GetUser(ctx context.Context, userQuota string) (entity.User, error)
 	GetData(ctx context.Context, dataQuota string) (entity.User, error)
 	Update(ctx context.Context, user entity.User) error

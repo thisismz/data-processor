@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
@@ -22,16 +23,16 @@ func NewStorageRepository(dataBaseConnection *gorm.DB, redisClient *redis.Client
 		sql:    sql.NewSqlRepository(dataBaseConnection),
 	}
 }
-func (st *storageRepository) Add(ctx context.Context, user entity.User) error {
-	if err := st.memory.Add(ctx, user); err != nil {
+func (st *storageRepository) Add(ctx context.Context, user entity.User, expiration time.Duration) error {
+	if err := st.memory.Add(ctx, user, expiration); err != nil {
 		return err
 	}
 	go func() {
-
+		if err := st.sql.Create(ctx, user); err != nil {
+			log.Err(err).Msg("sql:create user failed")
+		}
 	}()
-	if err := st.sql.Create(ctx, user); err != nil {
-		log.Err(err).Msg("sql:create user failed")
-	}
+
 	return nil
 }
 
@@ -39,15 +40,20 @@ func (st *storageRepository) Update(ctx context.Context, user entity.User) error
 	if err := st.memory.Update(ctx, user); err != nil {
 		return err
 	}
-	if err := st.sql.Update(ctx, user); err != nil {
-		log.Err(err).Msg("sql:update user failed")
-	}
+	go func() {
+		if err := st.sql.Update(ctx, user); err != nil {
+			log.Err(err).Msg("sql:update user failed")
+		}
+	}()
 	return nil
 }
 
 func (st *storageRepository) GetData(ctx context.Context, dataQuota string) (entity.User, error) {
 	data, err := st.memory.GetData(ctx, dataQuota)
 	if err != nil {
+		if err.Error() == "nil" {
+			return entity.User{}, ErrDataNotFound
+		}
 		return entity.User{}, err
 	}
 	return data, nil
@@ -56,6 +62,9 @@ func (st *storageRepository) GetData(ctx context.Context, dataQuota string) (ent
 func (st *storageRepository) GetUser(ctx context.Context, userQuota string) (entity.User, error) {
 	user, err := st.memory.GetUser(ctx, userQuota)
 	if err != nil {
+		if err.Error() == "nil" {
+			return entity.User{}, ErrUserNotFound
+		}
 		return entity.User{}, err
 	}
 	return user, nil
