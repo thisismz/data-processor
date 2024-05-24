@@ -7,6 +7,18 @@ import (
 	"github.com/thisismz/data-processor/internal/service"
 )
 
+// DataHandler is the handler for data
+// @Summary Send data to the server
+// @Description Send data to the server and return the result
+// @Tags Data
+// @Accept json
+// @Produce json
+// @Param data body request.DataRequest true "Data to send"
+// @Success 200 {object} response.ResponseHTTP
+// @Failure 400 {object} response.ResponseHTTP
+// @Failure 429 {object} response.ResponseHTTP
+// @Failure 500 {object} response.ResponseHTTP
+// @Router /data [post]
 func DataHandler(c *fiber.Ctx) error {
 	var dataRequest request.DataRequest
 	if err := c.BodyParser(&dataRequest); err != nil {
