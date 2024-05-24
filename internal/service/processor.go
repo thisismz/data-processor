@@ -28,6 +28,7 @@ func DataProcessor(userQuota string, dataQuota string, payload string) error {
 	}
 	return nil
 }
+
 func processMessage(d amqp091.Delivery, done chan bool) {
 	var msg valueobject.Data
 	err := json.Unmarshal(d.Body, &msg)

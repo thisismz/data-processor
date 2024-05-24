@@ -51,4 +51,5 @@ func CloseMysql() {
 			log.Err(err).Msg("mysql close failed")
 		}
 	}
+	log.Info().Msg("mysql closed")
 }

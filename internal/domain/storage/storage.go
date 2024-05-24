@@ -22,33 +22,60 @@ func NewStorageRepository(dataBaseConnection *gorm.DB, redisClient *redis.Client
 		sql:    sql.NewSqlRepository(dataBaseConnection),
 	}
 }
-func (st *storageRepository) Add(ctx context.Context, user entity.User) error {
-	if err := st.memory.Add(ctx, user); err != nil {
-		return err
+func (st *storageRepository) Add(ctx context.Context, user entity.User, circuitBreaker bool) (err error) {
+	if circuitBreaker {
+		if err := st.sql.Create(ctx, user); err != nil {
+			log.Err(err).Msg("sql:create user failed")
+			return err
+		}
+		return nil
+	}
+
+	if err = st.memory.Add(ctx, user); err != nil {
+		user.IsSync = false
+		log.Err(err).Msg("redis: unable to set")
 	}
 	// push to list
-	if err := st.memory.Push(ctx, user); err != nil {
-		return err
+	if err = st.memory.Push(ctx, user); err != nil {
+		log.Err(err).Msg("redis: unable to push")
 	}
+
 	go func() {
 		if err := st.sql.Create(ctx, user); err != nil {
 			log.Err(err).Msg("sql:create user failed")
 		}
 	}()
-
-	return nil
+	return err
 }
 
-func (st *storageRepository) Update(ctx context.Context, user entity.User) error {
-	if err := st.memory.Update(ctx, user); err != nil {
-		return err
+func (st *storageRepository) Update(ctx context.Context, user entity.User, circuitBreaker bool) (err error) {
+	if circuitBreaker {
+		if err := st.sql.Create(ctx, user); err != nil {
+			log.Err(err).Msg("sql:create user failed")
+			return err
+		}
+		return nil
 	}
+	if err = st.memory.Update(ctx, user); err != nil {
+		user.IsSync = false
+		log.Err(err).Msg("redis: unable to update")
+	}
+	// push to list
+	if err = st.memory.Push(ctx, user); err != nil {
+		log.Err(err).Msg("redis: unable to push")
+	}
+
+	if err = st.memory.SetUserData(ctx, user.UserDataQuota, user.CreateAt); err != nil {
+		log.Err(err).Msg("redis: unable to Set")
+	}
+
 	go func() {
-		if err := st.sql.Update(ctx, user); err != nil {
+		if err := st.sql.Create(ctx, user); err != nil {
 			log.Err(err).Msg("sql:update user failed")
 		}
 	}()
-	return nil
+
+	return err
 }
 
 func (st *storageRepository) GetData(ctx context.Context, dataQuota string) (entity.User, error) {

@@ -26,9 +26,8 @@ func (r *RedisRepository) Add(ctx context.Context, user entity.User) error {
 	return nil
 }
 
-func (r *RedisRepository) AddUserDataKey(ctx context.Context, user entity.User) error {
-	key := user.UserQuota + ":" + user.DataQuota
-	if err := r.redis.Set(ctx, key, user, 0).Err(); err != nil {
+func (r *RedisRepository) SetUserData(ctx context.Context, key string, val any) error {
+	if err := r.redis.Set(ctx, key, val, 0).Err(); err != nil {
 		return err
 	}
 	return nil

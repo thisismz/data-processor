@@ -14,11 +14,13 @@ type User struct {
 	CreateAt               time.Time
 	UserQuota              string
 	DataQuota              string
+	UserDataQuota          string
 	S3Path                 string
 	RateLimit              int
 	RateLimitExpiration    time.Time
 	TrafficLimit           int64
 	TrafficLimitExpiration time.Time
+	IsSync                 bool
 }
 
 func (u User) MarshalBinary() ([]byte, error) {

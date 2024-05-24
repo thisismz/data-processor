@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	REDIS *redis.Client
-	ctx   = context.Background()
+	REDIS           *redis.Client
+	ctx             = context.Background()
+	RedisSyncStatus = true
 )
 
 func StartRedis() {

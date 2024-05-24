@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/thisismz/data-processor/internal/entity"
+	"github.com/thisismz/data-processor/pkg/circuit_breaker"
 	"github.com/thisismz/data-processor/pkg/env"
 )
 
@@ -57,7 +58,6 @@ func UserLimitsCheck(userQuota string, dataQuota string, fileSizeBytes int64) er
 	}
 
 	// check traffic limit
-
 	if user.TrafficLimitExpiration.Before(time.Now()) {
 		if user.TrafficLimit > 0 && user.TrafficLimit >= fileSizeBytes {
 			user.TrafficLimit -= fileSizeBytes
@@ -68,8 +68,11 @@ func UserLimitsCheck(userQuota string, dataQuota string, fileSizeBytes int64) er
 		user.TrafficLimit = trafficLimit
 		user.TrafficLimitExpiration = trafficExpiration
 	}
+
 	// update user status
-	err = storageSrv.store.Update(context.Background(), user)
+	user.IsSync = true
+	user.UserDataQuota = userQuota + ":" + dataQuota
+	err = storageSrv.store.Update(context.Background(), user, circuit_breaker.GetCircuitStatus())
 	if err != nil {
 		return err
 	}
@@ -86,8 +89,9 @@ func createNewUser(userQuota string, dataQuota string) error {
 	user.RateLimitExpiration = rateLimitExpiration
 	user.TrafficLimit = trafficLimit
 	user.TrafficLimitExpiration = trafficExpiration
+	user.IsSync = true
 
-	err := storageSrv.store.Add(context.Background(), user)
+	err := storageSrv.store.Add(context.Background(), user, circuit_breaker.GetCircuitStatus())
 	if err != nil {
 		return err
 	}

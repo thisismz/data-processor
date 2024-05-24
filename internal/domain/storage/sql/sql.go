@@ -30,7 +30,7 @@ func (r *SqlRepository) GetUser(ctx context.Context, userQuota string) (entity.U
 
 func (r *SqlRepository) GetSync(ctx context.Context, date time.Time) ([]entity.User, error) {
 	var users []entity.User
-	if err := r.db.Where("date <= ?", date).Find(&users).Error; err != nil {
+	if err := r.db.Where("date <= ? and is_sync =", date, false).Order("date asc").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -52,19 +52,28 @@ func (r *SqlRepository) Create(ctx context.Context, user entity.User) error {
 }
 
 func (r *SqlRepository) Update(ctx context.Context, user entity.User) error {
-	if err := r.db.Save(&user).Error; err != nil {
+	if err := r.db.Where("id = ?", user.ID).Updates(entity.User{
+		IsSync: true,
+	}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *SqlRepository) CheckDuplicate(ctx context.Context, userQuota string, dataQuota string) (bool, error) {
+func (r *SqlRepository) CheckDuplicate(ctx context.Context, userDataQuata string) (bool, error) {
 	var user entity.User
-	if err := r.db.Where("user_quota = ? AND data_quota = ?", userQuota, dataQuota).First(&user).Error; err != nil {
+	if err := r.db.Where("user_data_quota = ? ", userDataQuata).First(&user).Error; err != nil {
 		return false, err
 	}
 	if user.UID == uuid.Nil {
 		return false, nil
 	}
 	return true, nil
+}
+func (r *SqlRepository) GetUnSync() ([]entity.User, error) {
+	var user []entity.User
+	if err := r.db.Where("is_sync = ?", false).First(&user).Error; err != nil {
+		return []entity.User{}, err
+	}
+	return user, nil
 }
