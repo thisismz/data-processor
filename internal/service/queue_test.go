@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/thisismz/data-processor/internal/entity"
+	"github.com/thisismz/data-processor/internal/valueobject"
 )
 
 func TestSendToQueue(t *testing.T) {
 	QueueServiceUp()
-	data := entity.Data{
+	data := valueobject.Data{
 		UID:       uuid.New(),
 		DataQuota: uuid.New().String(),
 		UserQuota: uuid.New().String(),

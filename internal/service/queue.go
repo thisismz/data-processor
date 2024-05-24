@@ -2,10 +2,10 @@ package service
 
 import (
 	"github.com/rs/zerolog/log"
-	"github.com/thisismz/data-processor/internal/entity"
+	"github.com/thisismz/data-processor/internal/valueobject"
 )
 
-func SendToQueue(data entity.Data) error {
+func SendToQueue(data valueobject.Data) error {
 	return queueSrv.queue.Enqueue(data)
 }
 

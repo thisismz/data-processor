@@ -17,7 +17,7 @@ type User struct {
 	S3Path                 string
 	RateLimit              int
 	RateLimitExpiration    time.Time
-	TrafficLimit           int
+	TrafficLimit           int64
 	TrafficLimitExpiration time.Time
 }
 

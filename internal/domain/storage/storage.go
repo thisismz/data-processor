@@ -26,7 +26,7 @@ func (st *storageRepository) Add(ctx context.Context, user entity.User) error {
 	if err := st.memory.Add(ctx, user); err != nil {
 		return err
 	}
-	// push to memory
+	// push to list
 	if err := st.memory.Push(ctx, user); err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (st *storageRepository) GetData(ctx context.Context, dataQuota string) (ent
 	data, err := st.memory.GetData(ctx, dataQuota)
 	if err != nil {
 		if err.Error() == "nil" {
-			return entity.User{}, ErrDataNotFound
+			return entity.User{}, nil
 		}
 		return entity.User{}, err
 	}
@@ -66,7 +66,7 @@ func (st *storageRepository) GetUser(ctx context.Context, userQuota string) (ent
 	user, err := st.memory.GetUser(ctx, userQuota)
 	if err != nil {
 		if err.Error() == "nil" {
-			return entity.User{}, ErrUserNotFound
+			return entity.User{}, nil
 		}
 		return entity.User{}, err
 	}
