@@ -22,7 +22,7 @@ func NewSqlRepository(dataBaseConnections *gorm.DB) *SqlRepository {
 // read
 func (r *SqlRepository) GetUser(ctx context.Context, userQuota string) (entity.User, error) {
 	var user entity.User
-	if err := r.db.Where("user_quota = ?", userQuota).First(&user).Error; err != nil {
+	if err := r.db.Where("user_quota = ?", userQuota).Last(&user).Error; err != nil {
 		return entity.User{}, err
 	}
 	return user, nil
@@ -37,7 +37,7 @@ func (r *SqlRepository) GetSync(ctx context.Context, date time.Time) ([]entity.U
 }
 func (r *SqlRepository) GetData(ctx context.Context, dataQuota string) (entity.User, error) {
 	var user entity.User
-	if err := r.db.Where("data_quota = ?", dataQuota).First(&user).Error; err != nil {
+	if err := r.db.Where("data_quota = ?", dataQuota).Last(&user).Error; err != nil {
 		return entity.User{}, err
 	}
 	return user, nil
@@ -60,9 +60,10 @@ func (r *SqlRepository) Update(ctx context.Context, user entity.User) error {
 	return nil
 }
 
-func (r *SqlRepository) CheckDuplicate(ctx context.Context, userDataQuata string) (bool, error) {
+func (r *SqlRepository) CheckDuplicate(ctx context.Context, userQuota, dataQuota string) (bool, error) {
+	userDataQuota := userQuota + ":" + dataQuota
 	var user entity.User
-	if err := r.db.Where("user_data_quota = ? ", userDataQuata).First(&user).Error; err != nil {
+	if err := r.db.Where("user_data_quota = ? ", userDataQuota).First(&user).Error; err != nil {
 		return false, err
 	}
 	if user.UID == uuid.Nil {

@@ -43,5 +43,9 @@ func timeTicker(minute time.Duration) {
 	}()
 }
 func GetCircuitStatus() bool {
-	return cache.RedisSyncStatus
+	var status = false
+	if !cache.RedisSyncStatus {
+		status = false
+	}
+	return status
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/thisismz/data-processor/internal/domain/storage/memory"
 	"github.com/thisismz/data-processor/internal/domain/storage/sql"
 	"github.com/thisismz/data-processor/internal/entity"
+	"github.com/thisismz/data-processor/pkg/circuit_breaker"
 	"gorm.io/gorm"
 )
 
@@ -22,8 +23,8 @@ func NewStorageRepository(dataBaseConnection *gorm.DB, redisClient *redis.Client
 		sql:    sql.NewSqlRepository(dataBaseConnection),
 	}
 }
-func (st *storageRepository) Add(ctx context.Context, user entity.User, circuitBreaker bool) (err error) {
-	if circuitBreaker {
+func (st *storageRepository) Add(ctx context.Context, user entity.User) (err error) {
+	if circuit_breaker.GetCircuitStatus() {
 		if err := st.sql.Create(ctx, user); err != nil {
 			log.Err(err).Msg("sql:create user failed")
 			return err
@@ -48,8 +49,9 @@ func (st *storageRepository) Add(ctx context.Context, user entity.User, circuitB
 	return err
 }
 
-func (st *storageRepository) Update(ctx context.Context, user entity.User, circuitBreaker bool) (err error) {
-	if circuitBreaker {
+func (st *storageRepository) Update(ctx context.Context, user entity.User) (err error) {
+
+	if circuit_breaker.GetCircuitStatus() {
 		if err := st.sql.Create(ctx, user); err != nil {
 			log.Err(err).Msg("sql:create user failed")
 			return err
@@ -79,9 +81,17 @@ func (st *storageRepository) Update(ctx context.Context, user entity.User, circu
 }
 
 func (st *storageRepository) GetData(ctx context.Context, dataQuota string) (entity.User, error) {
+	if circuit_breaker.GetCircuitStatus() {
+		res, err := st.sql.GetData(ctx, dataQuota)
+		if err != nil {
+			log.Err(err).Msg("sql:get user failed")
+			return res, err
+		}
+		return res, nil
+	}
 	data, err := st.memory.GetData(ctx, dataQuota)
 	if err != nil {
-		if err.Error() == "nil" {
+		if err.Error() == "redis: nil" {
 			return entity.User{}, nil
 		}
 		return entity.User{}, err
@@ -90,9 +100,17 @@ func (st *storageRepository) GetData(ctx context.Context, dataQuota string) (ent
 }
 
 func (st *storageRepository) GetUser(ctx context.Context, userQuota string) (entity.User, error) {
+	if circuit_breaker.GetCircuitStatus() {
+		res, err := st.sql.GetUser(ctx, userQuota)
+		if err != nil {
+			log.Err(err).Msg("sql:get user failed")
+			return res, err
+		}
+		return res, nil
+	}
 	user, err := st.memory.GetUser(ctx, userQuota)
 	if err != nil {
-		if err.Error() == "nil" {
+		if err.Error() == "redis: nil" {
 			return entity.User{}, nil
 		}
 		return entity.User{}, err
@@ -101,9 +119,15 @@ func (st *storageRepository) GetUser(ctx context.Context, userQuota string) (ent
 }
 
 func (st *storageRepository) CheckDuplicate(ctx context.Context, userQuota string, dataQuota string) (bool, error) {
+	if circuit_breaker.GetCircuitStatus() {
+		res, err := st.sql.CheckDuplicate(ctx, userQuota, dataQuota)
+		return res, err
+	}
 	isDuplicate, err := st.memory.CheckDuplicate(ctx, userQuota, dataQuota)
 	if err != nil {
-		return false, err
+		if err.Error() == "redis: nil" {
+			return false, nil
+		}
 	}
 	return isDuplicate, nil
 }

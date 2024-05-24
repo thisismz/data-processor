@@ -9,15 +9,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/thisismz/data-processor/internal/entity"
-	"github.com/thisismz/data-processor/pkg/circuit_breaker"
 	"github.com/thisismz/data-processor/pkg/env"
 )
 
 var (
 	rateLimit           = 0
 	trafficLimit        = int64(0)
-	trafficExpiration   = time.Now()
-	rateLimitExpiration = time.Now()
+	ctx                 = context.Background()
+	trafficExpiration_i = 0
+	rateExpiration_i    = 0
 )
 var (
 	ErrExceededTrafficLimit = errors.New("exceeded traffic limit")
@@ -25,30 +25,58 @@ var (
 	ErrDataDuplicate        = errors.New("data already exists")
 )
 
-func UserLimitsCheck(userQuota string, dataQuota string, fileSizeBytes int64) error {
-	// check user is exists
-	user, err := storageSrv.store.GetUser(context.Background(), userQuota)
+func GetUser(userQuota string, dataQuota string) (entity.User, error) {
+	user, err := storageSrv.store.GetUser(ctx, userQuota)
 	if err != nil {
-		return err
+		return entity.User{}, err
 	}
-	if user.UID == uuid.Nil {
-		return createNewUser(userQuota, dataQuota)
+	return user, nil
+}
+func CreateNewUser(userQuota string, dataQuota string) (entity.User, error) {
+	nowTime := time.Now()
+
+	trafficExpiration := time.Now().Add(time.Duration(trafficExpiration_i) * time.Minute)
+	rateLimitExpiration := time.Now().Add(time.Duration(rateExpiration_i) * time.Minute)
+
+	user := entity.User{
+		CreateAt:               nowTime,
+		DataQuota:              dataQuota,
+		UserQuota:              userQuota,
+		UID:                    uuid.New(),
+		RateLimit:              rateLimit,
+		RateLimitExpiration:    rateLimitExpiration,
+		TrafficLimit:           trafficLimit,
+		TrafficLimitExpiration: trafficExpiration,
+		IsSync:                 true,
 	}
 
-	// check rate limit
-	if user.RateLimitExpiration.Before(time.Now()) {
+	err := storageSrv.store.Add(ctx, user)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return user, nil
+}
+
+func CheckRateLimit(user entity.User) (entity.User, error) {
+	nowTime := time.Now()
+
+	rateLimitExpiration := time.Now().Add(time.Duration(rateExpiration_i) * time.Minute)
+	if user.RateLimitExpiration.Before(nowTime) {
 		if user.RateLimit > 0 {
 			user.RateLimit--
 		} else {
-			return ErrExceededRateLimit
+			return entity.User{}, ErrExceededRateLimit
 		}
 	} else {
 		user.RateLimit = rateLimit
 		user.RateLimitExpiration = rateLimitExpiration
 	}
+	return user, nil
+}
 
-	// check data duplicate
-	isDuplicate, err := storageSrv.store.CheckDuplicate(context.Background(), userQuota, dataQuota)
+func CheckDuplicate(user entity.User) error {
+	isDuplicate, err := storageSrv.store.CheckDuplicate(ctx, user.UserQuota, user.DataQuota)
 	if err != nil {
 		log.Err(err).Msg("check duplicate failed")
 		return err
@@ -56,46 +84,35 @@ func UserLimitsCheck(userQuota string, dataQuota string, fileSizeBytes int64) er
 	if isDuplicate {
 		return ErrDataDuplicate
 	}
+	return nil
+}
 
-	// check traffic limit
-	if user.TrafficLimitExpiration.Before(time.Now()) {
+func CheckTrafficLimit(user entity.User, fileSizeBytes int64) (entity.User, error) {
+	nowTime := time.Now()
+
+	trafficExpiration := time.Now().Add(time.Duration(trafficExpiration_i) * time.Minute)
+
+	if user.TrafficLimitExpiration.Before(nowTime) {
 		if user.TrafficLimit > 0 && user.TrafficLimit >= fileSizeBytes {
 			user.TrafficLimit -= fileSizeBytes
 		} else {
-			return ErrExceededTrafficLimit
+			return entity.User{}, ErrExceededTrafficLimit
 		}
 	} else {
 		user.TrafficLimit = trafficLimit
 		user.TrafficLimitExpiration = trafficExpiration
 	}
-
-	// update user status
-	user.IsSync = true
-	user.UserDataQuota = userQuota + ":" + dataQuota
-	err = storageSrv.store.Update(context.Background(), user, circuit_breaker.GetCircuitStatus())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return user, nil
 }
-func createNewUser(userQuota string, dataQuota string) error {
-	var user entity.User
 
-	user.DataQuota = dataQuota
-	user.UserQuota = userQuota
-	user.UID = uuid.New()
-	user.RateLimit = rateLimit
-	user.RateLimitExpiration = rateLimitExpiration
-	user.TrafficLimit = trafficLimit
-	user.TrafficLimitExpiration = trafficExpiration
+func UpdateUser(user entity.User) error {
 	user.IsSync = true
-
-	err := storageSrv.store.Add(context.Background(), user, circuit_breaker.GetCircuitStatus())
+	user.UserDataQuota = user.UserQuota + ":" + user.DataQuota
+	user.CreateAt = time.Now()
+	err := storageSrv.store.Update(ctx, user)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -105,19 +122,16 @@ func init() {
 	if err != nil {
 		log.Err(err).Msg("Error: in converting string to int")
 	}
+	rateExpiration_i, err = strconv.Atoi(env.GetEnv("RATE_EXPIRATION_MIN", "1"))
+	if err != nil {
+		log.Err(err).Msg("Error: in converting string to int")
+	}
 	trafficLimit, err = strconv.ParseInt(env.GetEnv("TRAFFIC_LIMIT_BYTE", "100000"), 10, 64)
 	if err != nil {
 		log.Err(err).Msg("Error: in converting string to int")
 	}
-	trafficExpiration_i, err := strconv.Atoi(env.GetEnv("TRAFFIC_EXPIRATION_MIN", "1"))
+	trafficExpiration_i, err = strconv.Atoi(env.GetEnv("TRAFFIC_EXPIRATION_MIN", "100"))
 	if err != nil {
 		log.Err(err).Msg("Error: in converting string to int")
 	}
-	rateExpiration_i, err := strconv.Atoi(env.GetEnv("RATE_EXPIRATION_MIN", "1"))
-	if err != nil {
-		log.Err(err).Msg("Error: in converting string to int")
-	}
-
-	trafficExpiration = time.Now().Add(time.Duration(trafficExpiration_i) * time.Minute)
-	rateLimitExpiration = time.Now().Add(time.Duration(rateExpiration_i) * time.Minute)
 }

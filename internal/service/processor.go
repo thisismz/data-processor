@@ -35,6 +35,9 @@ func StartDataProcessor() {
 		go ReceiveFromQueue(done)
 		// done
 		//done <- true
+	} else {
+		log.Info().Msg("service act like producer")
+
 	}
 }
 func processMessage(d amqp091.Delivery, done chan bool) {

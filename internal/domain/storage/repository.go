@@ -18,8 +18,8 @@ var (
 )
 
 type StorageRepository interface {
-	Add(ctx context.Context, user entity.User, circuitBreaker bool) error
-	Update(ctx context.Context, user entity.User, circuitBreaker bool) error
+	Add(ctx context.Context, user entity.User) error
+	Update(ctx context.Context, user entity.User) error
 	GetUser(ctx context.Context, userQuota string) (entity.User, error)
 	GetData(ctx context.Context, dataQuota string) (entity.User, error)
 	CheckDuplicate(ctx context.Context, userQuota string, dataQuota string) (bool, error)

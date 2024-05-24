@@ -89,5 +89,12 @@ func (r *RedisRepository) Update(ctx context.Context, user entity.User) error {
 
 func (r *RedisRepository) CheckDuplicate(ctx context.Context, userQuota string, dataQuota string) (bool, error) {
 	key := userQuota + ":" + dataQuota
-	return r.redis.Get(ctx, key).Bool()
+	res, err := r.redis.Get(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	if res == "" {
+		return false, nil
+	}
+	return true, nil
 }
