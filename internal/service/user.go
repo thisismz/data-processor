@@ -62,7 +62,7 @@ func CheckRateLimit(user entity.User) (entity.User, error) {
 	nowTime := time.Now()
 
 	rateLimitExpiration := time.Now().Add(time.Duration(rateExpiration_i) * time.Minute)
-	if user.RateLimitExpiration.Before(nowTime) {
+	if user.RateLimitExpiration.After(nowTime) {
 		if user.RateLimit > 0 {
 			user.RateLimit--
 		} else {
@@ -92,7 +92,7 @@ func CheckTrafficLimit(user entity.User, fileSizeBytes int64) (entity.User, erro
 
 	trafficExpiration := time.Now().Add(time.Duration(trafficExpiration_i) * time.Minute)
 
-	if user.TrafficLimitExpiration.Before(nowTime) {
+	if user.TrafficLimitExpiration.After(nowTime) {
 		if user.TrafficLimit > 0 && user.TrafficLimit >= fileSizeBytes {
 			user.TrafficLimit -= fileSizeBytes
 		} else {
@@ -118,11 +118,11 @@ func UpdateUser(user entity.User) error {
 
 func init() {
 	var err error
-	rateLimit, err = strconv.Atoi(env.GetEnv("RATE_LIMIT", "1000"))
+	rateLimit, err = strconv.Atoi(env.GetEnv("RATE_LIMIT", "2"))
 	if err != nil {
 		log.Err(err).Msg("Error: in converting string to int")
 	}
-	rateExpiration_i, err = strconv.Atoi(env.GetEnv("RATE_EXPIRATION_MIN", "1"))
+	rateExpiration_i, err = strconv.Atoi(env.GetEnv("RATE_EXPIRATION_MIN", "10"))
 	if err != nil {
 		log.Err(err).Msg("Error: in converting string to int")
 	}
