@@ -2,10 +2,13 @@ package sql
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/thisismz/data-processor/internal/entity"
+	"github.com/thisismz/data-processor/pkg/env"
 	"gorm.io/gorm"
 )
 
@@ -62,8 +65,14 @@ func (r *SqlRepository) Update(ctx context.Context, user entity.User) error {
 
 func (r *SqlRepository) CheckDuplicate(ctx context.Context, userQuota, dataQuota string) (bool, error) {
 	userDataQuota := userQuota + ":" + dataQuota
+	timeLimit, err := strconv.Atoi(env.GetEnv("DUPLICATE_TIME_LIMIT", "10"))
+	if err != nil {
+		log.Err(err).Msg("Error: in converting string to int")
+	}
+	now := time.Now()
+	timeRange := now.Add(-time.Duration(timeLimit) * time.Minute)
 	var user entity.User
-	if err := r.db.Where("user_data_quota = ? ", userDataQuota).First(&user).Error; err != nil {
+	if err := r.db.Where("user_data_quota = ? AND created_at > ? ", userDataQuota, timeRange).First(&user).Error; err != nil {
 		return false, err
 	}
 	if user.UID == uuid.Nil {

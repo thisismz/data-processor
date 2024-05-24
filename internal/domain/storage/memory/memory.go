@@ -2,9 +2,13 @@ package memory
 
 import (
 	"context"
+	"strconv"
+	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 	"github.com/thisismz/data-processor/internal/entity"
+	"github.com/thisismz/data-processor/pkg/env"
 )
 
 var listName = "date"
@@ -27,7 +31,13 @@ func (r *RedisRepository) Add(ctx context.Context, user entity.User) error {
 }
 
 func (r *RedisRepository) SetUserData(ctx context.Context, key string, val any) error {
-	if err := r.redis.Set(ctx, key, val, 0).Err(); err != nil {
+
+	timeLimit, err := strconv.Atoi(env.GetEnv("DUPLICATE_TIME_LIMIT", "10"))
+	if err != nil {
+		log.Err(err).Msg("Error: in converting string to int")
+	}
+
+	if err := r.redis.Set(ctx, key, val, time.Duration(timeLimit)*time.Minute).Err(); err != nil {
 		return err
 	}
 	return nil
