@@ -8,19 +8,18 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/rabbitmq/amqp091-go"
-	"github.com/thisismz/data-processor/internal/entity"
 	"github.com/thisismz/data-processor/internal/valueobject"
 	"github.com/thisismz/data-processor/pkg/hash"
 )
 
-func DataProcessor(userQuota string, dataQuota string, payload []byte) error {
+func DataProcessor(userQuota string, dataQuota string, payload string) error {
 	var data valueobject.Data
 	// TODO: upload s3 here
 	data.UID = uuid.New()
 	data.UserQuota = userQuota
 	data.DataQuota = dataQuota
 	data.Size = int64(len(payload))
-	data.Hash = hash.Blake3Hash(payload)
+	data.Hash = hash.Blake3Hash([]byte(payload))
 	data.S3Path = "s3://bucket/path"
 	// send data to queue
 	err := SendToQueue(data)
@@ -30,7 +29,7 @@ func DataProcessor(userQuota string, dataQuota string, payload []byte) error {
 	return nil
 }
 func processMessage(d amqp091.Delivery, done chan bool) {
-	var msg entity.User
+	var msg valueobject.Data
 	err := json.Unmarshal(d.Body, &msg)
 	if err != nil {
 		log.Err(err).Msg("json unmarshal failed")
