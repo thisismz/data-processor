@@ -1,0 +1,42 @@
+services:
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:latest
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: password
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+
+    
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.13-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    image: app
+    environment:
+      RMQ_URL: 'amqp://guest:guest@rabbitmq:5672/'
+    ports:
+      - 8080:8080
+    depends_on:
+      - mariadb
+      - rabbitmq
+      - redis
