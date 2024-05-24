@@ -9,10 +9,11 @@ import (
 
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/thisismz/data-processor/internal/valueobject"
+	"github.com/thisismz/data-processor/pkg/env"
 	"github.com/thisismz/data-processor/pkg/hash"
 )
 
-func DataProcessor(userQuota string, dataQuota string, payload string) error {
+func SendDataToQueue(userQuota string, dataQuota string, payload string) error {
 	var data valueobject.Data
 	// TODO: upload s3 here
 	data.UID = uuid.New()
@@ -28,7 +29,14 @@ func DataProcessor(userQuota string, dataQuota string, payload string) error {
 	}
 	return nil
 }
-
+func StartDataProcessor() {
+	if env.GetEnv("IS_CONSUMER", "true") == "true" {
+		done := make(chan bool)
+		go ReceiveFromQueue(done)
+		// done
+		//done <- true
+	}
+}
 func processMessage(d amqp091.Delivery, done chan bool) {
 	var msg valueobject.Data
 	err := json.Unmarshal(d.Body, &msg)

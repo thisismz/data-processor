@@ -24,7 +24,7 @@ func DataHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	err = service.DataProcessor(dataRequest.UserID, dataRequest.DataID, dataRequest.Payload)
+	err = service.SendDataToQueue(dataRequest.UserID, dataRequest.DataID, dataRequest.Payload)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(response.ResponseHTTP{
 			ErrorCode: 500,

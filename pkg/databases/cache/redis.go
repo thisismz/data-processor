@@ -25,6 +25,7 @@ func StartRedis() {
 	pong, err := client.Ping(ctx).Result()
 	if err != nil {
 		log.Err(err).Msg("redis connect failed")
+		RedisSyncStatus = false
 	} else {
 		log.Info().Msg("redis connected: " + pong)
 		REDIS = client

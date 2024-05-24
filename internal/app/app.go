@@ -44,7 +44,13 @@ func Run() {
 		log.Err(err).Msg("storage service failed")
 		os.Exit(1)
 	}
+	if err := service.QueueServiceUp(); err != nil {
+		log.Err(err).Msg("queue service failed")
+		os.Exit(1)
+	}
 	// install routers
 	routers.InstallRouter(app)
+	// start data processor
+	service.StartDataProcessor()
 	gracefullyShutdown(app)
 }

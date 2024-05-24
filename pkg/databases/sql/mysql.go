@@ -1,6 +1,8 @@
 package sql
 
 import (
+	"os"
+
 	"github.com/rs/zerolog/log"
 	"github.com/thisismz/data-processor/internal/entity"
 	"github.com/thisismz/data-processor/pkg/env"
@@ -16,7 +18,8 @@ var (
 func StartMysql() {
 	DataBase, err = gorm.Open(mysql.Open(Dsn()), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		log.Err(err).Msg("failed to connect database")
+		os.Exit(-1)
 	}
 	DataBase.InstanceSet("gorm:table_options", "ENGINE="+env.GetEnv("DB_ENGINE", "InnoDB"))
 	sqlDB, _ := DataBase.DB()
@@ -25,7 +28,8 @@ func StartMysql() {
 		&entity.User{},
 	)
 	if err != nil {
-		panic(err)
+		log.Err(err).Msg("failed to migrate database")
+		os.Exit(-1)
 	}
 }
 func Dsn() string {
