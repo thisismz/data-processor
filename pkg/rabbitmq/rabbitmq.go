@@ -33,6 +33,7 @@ func New() *RabbitMQ {
 
 	err = bindQueue(channel, queue.Name, exchangeName, routingKey)
 	failOnError(err, "Failed to bind a queue")
+	log.Info().Msg("rabbitmq connected")
 	return &RabbitMQ{
 		conn:         conn,
 		channel:      channel,

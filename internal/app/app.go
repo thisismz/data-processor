@@ -8,8 +8,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/thisismz/data-processor/internal/routers"
+	"github.com/thisismz/data-processor/internal/service"
 	"github.com/thisismz/data-processor/pkg/databases"
 	"github.com/thisismz/data-processor/pkg/env"
 )
@@ -37,7 +39,18 @@ func Run() {
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
 	}))
+
+	if err := service.StorageServiceUp(); err != nil {
+		log.Err(err).Msg("storage service failed")
+		os.Exit(1)
+	}
+	if err := service.QueueServiceUp(); err != nil {
+		log.Err(err).Msg("queue service failed")
+		os.Exit(1)
+	}
 	// install routers
 	routers.InstallRouter(app)
+	// start data processor
+	service.StartDataProcessor()
 	gracefullyShutdown(app)
 }

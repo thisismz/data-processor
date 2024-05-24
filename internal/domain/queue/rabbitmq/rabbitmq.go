@@ -10,13 +10,14 @@ type RabbitMQRepository struct {
 	rmq *rabbitmq.RabbitMQ
 }
 
-func New() *RabbitMQRepository {
+func NewRabbitMQRepository() *RabbitMQRepository {
 	rmq := rabbitmq.New()
 	return &RabbitMQRepository{
 		rmq: rmq,
 	}
 }
 
+// send your struct here
 func (r *RabbitMQRepository) Enqueue(data any) error {
 	res, err := json.Marshal(data)
 	if err != nil {
