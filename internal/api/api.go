@@ -29,7 +29,7 @@ func DataHandler(c *fiber.Ctx) error {
 	}
 	dataSize := int64(len(dataRequest.Payload))
 
-	user, err := service.GetUser(dataRequest.UserID, dataRequest.DataID)
+	user, err := service.GetUser(dataRequest.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(response.ResponseHTTP{
 			Message: err.Error(),
@@ -51,7 +51,8 @@ func DataHandler(c *fiber.Ctx) error {
 			Message: err.Error(),
 		})
 	}
-
+	user.UserQuota = dataRequest.UserID
+	user.DataQuota = dataRequest.DataID
 	err = service.CheckDuplicate(user)
 	if err != nil {
 		return c.Status(fiber.StatusForbidden).JSON(response.ResponseHTTP{

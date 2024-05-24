@@ -25,7 +25,7 @@ var (
 	ErrDataDuplicate        = errors.New("data already exists")
 )
 
-func GetUser(userQuota string, dataQuota string) (entity.User, error) {
+func GetUser(userQuota string) (entity.User, error) {
 	user, err := storageSrv.store.GetUser(ctx, userQuota)
 	if err != nil {
 		return entity.User{}, err
