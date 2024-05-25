@@ -1,8 +1,16 @@
 package main
 
 import (
+	"time"
+
 	"github.com/thisismz/data-processor/internal/app"
 	_ "github.com/thisismz/data-processor/pkg/docs"
+)
+
+var (
+	Version string
+	Build   string
+	Branch  string
 )
 
 // @title data-processor API
@@ -17,5 +25,14 @@ import (
 
 // @BasePath /
 func main() {
+	if Version == "" {
+		Version = "unknown"
+	}
+	if Branch == "" {
+		Branch = "unknown"
+	}
+	if Build == "" {
+		Build = time.Now().Format("2006-01-02 15:04:05")
+	}
 	app.Run()
 }
