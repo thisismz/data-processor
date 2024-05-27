@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/thisismz/data-processor/internal/app"
@@ -34,5 +35,6 @@ func main() {
 	if Build == "" {
 		Build = time.Now().Format("2006-01-02 15:04:05")
 	}
+	fmt.Printf("app version is :%s | branch is: %s | build time is : %s \n", Version, Branch, Build)
 	app.Run()
 }
