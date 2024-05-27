@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/thisismz/data-processor/internal/routers"
 	"github.com/thisismz/data-processor/internal/service"
+	"github.com/thisismz/data-processor/pkg/circuit_breaker"
 	"github.com/thisismz/data-processor/pkg/databases"
 	"github.com/thisismz/data-processor/pkg/env"
 )
@@ -52,5 +53,11 @@ func Run() {
 	routers.InstallRouter(app)
 	// start data processor
 	service.StartDataProcessor()
+	isLeader := true
+	if env.GetEnv("IS_LEADER", "TRUE") == "false" {
+		isLeader = false
+	}
+	circute := circuit_breaker.New("redis", 0, time.Duration(10*time.Minute), isLeader)
+	circute.Run()
 	gracefullyShutdown(app)
 }

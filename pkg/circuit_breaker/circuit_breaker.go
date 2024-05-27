@@ -23,12 +23,15 @@ func New(name string, maxRequest uint32, interval time.Duration, isLeader bool) 
 		IsLeader:    isLeader,
 	}
 }
-func (c *circuitBreaker) Run(err error) {
-	cache.RedisSyncStatus = false
-	timeTicker(c.Interval)
+func (c *circuitBreaker) Run() {
+	if c.IsLeader {
+		cache.RedisSyncStatus = false
+		timeTicker(c.Interval)
+	}
+
 }
 func timeTicker(minute time.Duration) {
-	ticker := time.NewTicker(minute * time.Minute)
+	ticker := time.NewTicker(minute)
 	done := make(chan bool)
 	go func() {
 		for {
