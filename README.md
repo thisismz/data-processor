@@ -6,12 +6,12 @@ This project implements a Data Processor system with an input component, a proce
 The system follows a Distributed Domain-Driven Design (DDD) architecture and utilizes design patterns such as Circuit Breaker.
 
 ## Key Features
+
 - Accepts data with unique identifiers and prevents processing duplicate data
 - Enforces rate limiting and traffic quotas for each user, including requests per minute and total data volume per month
 - Allows for multiple instances of the service to handle high request volumes
 - Configurable to run the service as either a Consumer or a Producer
 - Utilizes Docker for easy deployment and scalability
-
 
 ## Tech Stack
 
@@ -27,15 +27,25 @@ The system follows a Distributed Domain-Driven Design (DDD) architecture and uti
 1. Clone the repository
 2. Configure the environment variables (see example.env file)
 3. Build and run the application using Docker Compose: docker-compose up -d
+
 ### Run web server
 
 ```bash
-go run cmd/web/main.go
+go run cmd/main.go
 ```
+### Docker compose :
 
+```bash
+docker compose up -d 
+```
+### DockerBulid:
+
+```bash
+docker build -t data . 
+```
 ## API Spec
 
-All API Spec is in `api` folder. and swagger goto : http://127.0.0.1:80/docs/swagger/
+All API Spec is in `api` folder. and swagger goto : http://127.0.0.1:8080/docs/swagger/
 
 ## Database Migration
 
