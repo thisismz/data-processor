@@ -34,10 +34,14 @@ services:
     container_name: app
     image: app
     environment:
-      RMQ_URL: 'amqp://guest:guest@rabbitmq:5672/'
+      RABBITMQ_URL: 'amqp://guest:guest@rabbitmq:5672/'
+      DB_HOST: mariadb
+      REDIS_HOST: redis
+      APP_PORT : 8080
     ports:
       - 8080:8080
     depends_on:
       - mariadb
       - rabbitmq
       - redis
+    restart: unless-stopped

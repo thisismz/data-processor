@@ -1,4 +1,4 @@
 -- create_database.sql
-CREATE DATABASE IF NOT EXISTS data_processor;
+CREATE DATABASE  data_processor;
 
 -- Create tables and other setup statements here
