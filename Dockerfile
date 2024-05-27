@@ -1,5 +1,5 @@
 ARG GO_VERSION=1.22.2
-ARG BASH_VERSION=5.0
+
 
 
 FROM golang:$GO_VERSION AS goBuilder
@@ -10,7 +10,7 @@ RUN cd /data-processor \
 
 
 
-FROM amd64/bash:$BASH_VERSION
+FROM alpine:latest AS app
 RUN sed -i -e 's/http:/https:/' /etc/apk/repositories \
     && apk --no-cache add busybox-suid curl rsync tzdata tcpdump ca-certificates \
     && mkdir -p /app/log
